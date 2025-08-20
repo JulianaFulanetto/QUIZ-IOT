@@ -1,23 +1,26 @@
 //importar do pacote mqtt-paho a classe client
-import { Client } from 'paho-mqtt'
+import { Client } from "paho-mqtt"
 
-let client;
+let client; //variavel global para guardar a instancia do cliente MQTT
 
-export const connectMQTT = (onMessageReceived) => {
-    
-    //Usar wss na porta 8884
-    client = new Client('broker.hievemq.com', 8884, '/mqtt', 'ractClient' + Math.random());
 
-    //define o handler para perda de conexão
+export const connectMQTT = ( onMessageReceived) => {
+
+    //Usar wss na porta 8884 para conexao segura
+    client = new Client("broker.hivemq.com",8884, "/mqtt","reactClient" + Math.random()*123); // cria um cliente aleatorio, para nn dar interferencia com outros clientes ja existentes
+
+    //define o handler para quando perder a conexão
     client.onConnectionLost = (responseObject) => {
-        console.log('Conexão perdida: ', responseObject);
-    };
+        console.log("Conexão perdida", responseObject);
 
-    //define o handler para a chegada de novas mensagens
-    client.onMessageArrived = (message) => {
-        console.log(message.destinationName, message.payloadString);
-       
-    };
+};
+
+//define o handler para quando receber uma mensagem
+client.onConnectionLost = (message) => {
+    //Ao receber a mensagem, repassa para seu callback o topico e o payload
+    onMessageReceived(message.destinationName, message.payloadString);
+};
+
 
     //inicia a conexão e subscreve nos topicos
     client.connect({
